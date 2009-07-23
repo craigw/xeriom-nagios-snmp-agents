@@ -1,3 +1,0 @@
-[submodule "vendor/snmp-tools"]
-	path = vendor/snmp-tools
-	url = git@github.com:craigw/snmp-tools.git
