@@ -1,0 +1,25 @@
+Xeriom Nagios SNMP Agents
+=========================
+
+A bunch of SNMP agents that I use in conjunction with the Nagios check here:
+
+  http://github.com/craigw/xeriom-nagios-checks
+
+Using the agents
+----------------
+
+Extract this directory to /usr/lib/xeriom-nagios-snmp-agents and add an entry
+to your snmpd.conf that looks like this:
+
+    pass_persist .1.3.6.1.4.1.32919.4.1.1.1.1 /usr/lib/xeriom-nagios-snmp-agents/bin/mount_agent
+
+Now restart your SNMPD and try to walk the OID tree .1.3.6.1.4.1.32919.4
+
+    snmpwalk -v 1 -c public localhost .1.3.6.1.4.1.32919.4
+
+You should see a bunch of OIDs and values from the agent.
+
+Authors
+-------
+
+Written by Craig R Webster <http://barkingiguana.com/~craig>
