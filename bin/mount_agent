@@ -39,7 +39,7 @@ agent = SnmpdPassPersistAgent.new do |snmp|
     end
 
     snmp.push(SnmpTriple.new("#{disk_oid}.7", "string", disk_status_summary))
-    snmp.push(SnmpTriple.new("#{disk_oid}.8", "string", disk_status_indicator))
+    snmp.push(SnmpTriple.new("#{disk_oid}.8", "integer", disk_status_indicator))
   end
 end
 
