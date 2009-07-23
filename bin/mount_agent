@@ -19,7 +19,7 @@ agent = SnmpdPassPersistAgent.new do |snmp|
   }
   mount_points.each_with_index do |mount_point, index|
     # For a simple query
-    disk_oid = "#{base_oid}.#{index}"
+    disk_oid = "#{base_oid}.#{index+1}"
     snmp.push(SnmpTriple.new("#{disk_oid}.1", "string", mount_point[5]))
     snmp.push(SnmpTriple.new("#{disk_oid}.2", "string", mount_point[0]))
     snmp.push(SnmpTriple.new("#{disk_oid}.3", "integer", mount_point[1].gsub(/[^0-9]/, '').to_i))
