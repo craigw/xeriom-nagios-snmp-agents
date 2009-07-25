@@ -33,7 +33,7 @@ agent = SnmpdPassPersistAgent.new do |snmp|
 
     index = total_mounts - mount_points.size
 
-    disk_oid = "#{base_oid}.#{index+1}"
+    disk_oid = "#{base_oid}.#{index}"
     snmp.push(SnmpTriple.new("#{disk_oid}.1", "string", mount_point[5]))
     snmp.push(SnmpTriple.new("#{disk_oid}.2", "string", mount_point[0]))
     snmp.push(SnmpTriple.new("#{disk_oid}.3", "integer", mount_point[1].gsub(/[^0-9]/, '').to_i))
