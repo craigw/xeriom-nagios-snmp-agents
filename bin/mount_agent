@@ -15,10 +15,24 @@ base_oid = "#{enterprise_oid}.4.1.1.1.1"
 
 agent = SnmpdPassPersistAgent.new do |snmp|
   mount_points = `df`.strip.split(/\n/)[1..-1].map { |line|
-    line.split(/\ +/)
+    line.split(/\ +/).map { |s| s.strip }
   }
-  mount_points.each_with_index do |mount_point, index|
-    # For a simple query
+
+  total_mounts = mount_points.size
+  while mount_points.any?
+    mount_point = mount_points.shift
+    while mount_point.size < 6
+      next_line = mount_points.shift
+      next_line.each { |s|
+        if !s.nil? && s.strip != ""
+          mount_point << s
+        end
+      }
+      total_mounts -= 1
+    end
+
+    index = total_mounts - mount_points.size
+
     disk_oid = "#{base_oid}.#{index+1}"
     snmp.push(SnmpTriple.new("#{disk_oid}.1", "string", mount_point[5]))
     snmp.push(SnmpTriple.new("#{disk_oid}.2", "string", mount_point[0]))
