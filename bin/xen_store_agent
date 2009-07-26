@@ -1,5 +1,21 @@
 #! /usr/bin/env ruby
 
+# SPECIAL REQUIREMENTS
+# ====================
+#
+# The user that snmpd runs as will need to be able to run xenstore-ls as root.
+#
+# Internally it uses this command:
+#
+#     sudo /usr/bin/xenstore-ls /local/domain
+#
+# To allow that I added this line to my /etc/sudoers:
+#
+#     snmp ALL = NOPASSWD: /usr/bin/xenstore-ls /local/domain
+#
+# You may need to change this line depending on where xenstore-ls is found and
+# which user your snmpd executs pass_agents as.
+#
 $:.unshift(File.dirname(__FILE__) + '/../vendor/snmp-tools/lib')
 require 'snmp-tools'
 

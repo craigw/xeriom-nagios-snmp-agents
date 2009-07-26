@@ -25,6 +25,13 @@ You should see a bunch of OIDs and values from the agent.
 xen_store_agent. Pick the agents that make sense for your situation.
 
 
+Special requirements
+--------------------
+
+Various agents have special requirements. Please have a look at the top of the
+individual agent script for specific requirements.
+
+
 Authors
 -------
 
