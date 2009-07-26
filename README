@@ -6,11 +6,36 @@ A bunch of SNMP agents that I use in conjunction with the Nagios check here:
   http://github.com/craigw/xeriom-nagios-checks
 
 
+Installation
+------------
+
+Extract this directory to /usr/lib/xeriom-nagios-snmp-agents:
+
+  cd /usr/lib
+  sudo git clone git://github.com/craigw/xeriom-nagios-snmp-agents.git
+
+Remember to pull in the submodules:
+
+  cd /usr/lib/xeriom-nagios-snmp-agents
+  sudo git submodule init
+  sudo git submodule update
+
+
+Checking things work
+--------------------
+
+As mentioned in the documentation for snmp-tools you can ask each agent to
+dump the OID tree it manages. For example, to see what the mount agent would
+output you would do this:
+
+    cd /usr/lib/xeriom-nagios-snmp-agents
+    echo DUMP | bin/mount_agent
+
+
 Using the agents
 ----------------
 
-Extract this directory to /usr/lib/xeriom-nagios-snmp-agents and add a section
-to your snmpd.conf that looks like this*:
+Add a section to your snmpd.conf that looks like this*:
 
     pass_persist .1.3.6.1.4.1.32919.4.1.1.1.1 /usr/lib/xeriom-nagios-snmp-agents/bin/mount_agent
     pass_persist .1.3.6.1.4.1.32919.4.2.1.1.1 /usr/lib/xeriom-nagios-snmp-agents/bin/xen_store_agent
