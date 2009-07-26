@@ -210,7 +210,7 @@ base_oid = "#{enterprise_oid}.4.2.1.1.1"
 
 Domain.load_tokens
 
-agent = SnmpdPassPersistAgent.new do |snmp|
+agent = SnmpdPassPersistAgent.new(:idle_timeout => 900) do |snmp|
   domains_oid = "#{base_oid}.1"
   Domain.each_with_index do |dom_u, index|
     #                         .2 = DomUs
