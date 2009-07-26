@@ -38,13 +38,15 @@ class Token
     details
   end
 
-  def initialize(string)
+  def initialize(string, base_level = 0)
     @string = string
     @children = {}
+    @base_level = base_level
+    @updated_at = Time.now
   end
 
   def level
-    @string.gsub(/(\ *).*/, '\1').size
+    @base_level + @string.gsub(/(\ *).*/, '\1').size
   end
 
   def key
@@ -111,6 +113,66 @@ class Token
   def child_names
     @children.keys
   end
+
+  def updated_at
+    @updated_at
+  end
+end
+
+class Domain
+  def Domain.load_tokens
+    @@tokens ||= Token.tokenize(`sudo /usr/bin/xenstore-ls /local/domain`)
+    Thread.new do
+      loop do
+        sleep 60
+        @@tokens = Token.tokenize(`sudo /usr/bin/xenstore-ls /local/domain`)
+      end
+    end
+  end
+
+  def Domain.each_with_index(&block)
+    @@tokens.each_with_index do |token, index|
+      yield Domain.new(token), index
+    end
+  end
+
+  def initialize(token)
+    @token = token
+    @last_refresh = Time.now.to_i
+  end
+
+  def method_missing(method_name, *args, &block)
+    if @token.respond_to?(method_name, *args, &block)
+      @token.send(method_name, *args, &block)
+    else
+      super
+    end
+  end
+
+  def respond_to?(method_name)
+    @token.respond_to?(method_name) || super
+  end
+
+  def xenstore_path
+    current_token = @token
+    path = [ current_token ]
+    while current_token.parent
+      current_token = current_token.parent
+      path.unshift current_token
+    end
+    '/local/domain/' + path.map { |node| node.key }.join('/')
+  end
+
+  # def refresh
+  #   parent = @token.parent
+  #   me = Token.new((' ' * @token.level) + @token.key + ' = "' + @token.value + '"')
+  #   tokens = Token.tokenize(`sudo /usr/bin/xenstore-ls #{xenstore_path}`, @token.level)
+  #   tokens.each do |child|
+  #     child.attach_to(me)
+  #   end
+  #   @token = me
+  #   @last_refresh = Time.now.to_i
+  # end
 end
 
 # IMPORTANT! Get your own OID from IANA or you will break things!
@@ -130,10 +192,11 @@ enterprise_oid = ".1.3.6.1.4.1.32919"
 #                          .1 = Instance
 base_oid = "#{enterprise_oid}.4.2.1.1.1"
 
+Domain.load_tokens
+
 agent = SnmpdPassPersistAgent.new do |snmp|
-  tokens = Token.tokenize(`sudo /usr/bin/xenstore-ls /local/domain`)
   domains_oid = "#{base_oid}.1"
-  tokens.each_with_index do |dom_u, index|
+  Domain.each_with_index do |dom_u, index|
     #                         .2 = DomUs
     #                           .1 = DomU
     domain_oid = "#{domains_oid}.2.#{index+1}"
@@ -170,7 +233,7 @@ agent = SnmpdPassPersistAgent.new do |snmp|
       #                                   .7 = State (String)
       snmp.push(SnmpTriple.new("#{interface_oid}.7", "string", interface["state"].value))
       #                                   .8 = Handle (String)
-      snmp.push(SnmpTriple.new("#{interface_oid}.4", "string", interface["handle"].value))
+      snmp.push(SnmpTriple.new("#{interface_oid}.4", "string",interface["handle"].value))
     end
     #                                  .5 = Storage
     #                                    .1 = Block Devices
@@ -202,6 +265,8 @@ agent = SnmpdPassPersistAgent.new do |snmp|
     #                                    .3 = Kernel (String)
     #                                    .4 = Kernel command line (String)
     #                                    .5 = Ram Disk (String)
+    #                                  .12 = Data Retrieval Date
+    snmp.push(SnmpTriple.new("#{domain_oid}.12", "string", dom_u.updated_at.strftime("%Y-%m-%dT%H:%M:%S%Z")))
   end
 end
 
