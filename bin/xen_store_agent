@@ -139,7 +139,7 @@ agent = SnmpdPassPersistAgent.new do |snmp|
     domain_oid = "#{domains_oid}.2.#{index+1}"
     #                             .1 = Name (String)
     dom_u_name = dom_u.name.value
-    if dom_u_name !=~ /\.vm\.xeriom\.net$/
+    if dom_u_name !~ /\.vm\.xeriom\.net$/
       dom_u_name += ".vm.xeriom.net"
     end
     snmp.push(SnmpTriple.new("#{domain_oid}.1", "string", dom_u_name))
