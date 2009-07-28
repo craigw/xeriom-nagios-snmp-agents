@@ -13,7 +13,7 @@ enterprise_oid = ".1.3.6.1.4.1.32919"
 #
 base_oid = "#{enterprise_oid}.4.1.1.1.1"
 
-agent = SnmpdPassPersistAgent.new do |snmp|
+agent = Snmp::PassPersistAgent.new do |snmp|
   mount_points = `df`.strip.split(/\n/)[1..-1].map { |line|
     line.split(/\ +/).map { |s| s.strip }
   }
@@ -34,13 +34,13 @@ agent = SnmpdPassPersistAgent.new do |snmp|
     index = total_mounts - mount_points.size
 
     disk_oid = "#{base_oid}.#{index}"
-    snmp.push(SnmpTriple.new("#{disk_oid}.1", "string", mount_point[5]))
-    snmp.push(SnmpTriple.new("#{disk_oid}.2", "string", mount_point[0]))
-    snmp.push(SnmpTriple.new("#{disk_oid}.3", "integer", mount_point[1].gsub(/[^0-9]/, '').to_i))
-    snmp.push(SnmpTriple.new("#{disk_oid}.4", "integer", mount_point[2].gsub(/[^0-9]/, '').to_i))
-    snmp.push(SnmpTriple.new("#{disk_oid}.5", "integer", mount_point[3].gsub(/[^0-9]/, '').to_i))
+    snmp.push(Snmp::Triple.new("#{disk_oid}.1", "string", mount_point[5]))
+    snmp.push(Snmp::Triple.new("#{disk_oid}.2", "string", mount_point[0]))
+    snmp.push(Snmp::Triple.new("#{disk_oid}.3", "integer", mount_point[1].gsub(/[^0-9]/, '').to_i))
+    snmp.push(Snmp::Triple.new("#{disk_oid}.4", "integer", mount_point[2].gsub(/[^0-9]/, '').to_i))
+    snmp.push(Snmp::Triple.new("#{disk_oid}.5", "integer", mount_point[3].gsub(/[^0-9]/, '').to_i))
     capacity = mount_point[4].gsub(/[^0-9]/, '').to_f
-    snmp.push(SnmpTriple.new("#{disk_oid}.6", "integer", capacity))
+    snmp.push(Snmp::Triple.new("#{disk_oid}.6", "integer", capacity))
 
     disk_summary = "#{100.0 - capacity}% (#{mount_point[3].gsub(/[^0-9]/, '').to_i} bytes) remaining"
     disk_status_summary, disk_status_indicator = * case
@@ -52,8 +52,8 @@ agent = SnmpdPassPersistAgent.new do |snmp|
       [ "Mount #{mount_point[5]} OK: #{disk_summary}", 0 ]
     end
 
-    snmp.push(SnmpTriple.new("#{disk_oid}.7", "string", disk_status_summary))
-    snmp.push(SnmpTriple.new("#{disk_oid}.8", "integer", disk_status_indicator))
+    snmp.push(Snmp::Triple.new("#{disk_oid}.7", "string", disk_status_summary))
+    snmp.push(Snmp::Triple.new("#{disk_oid}.8", "integer", disk_status_indicator))
   end
 end
 
