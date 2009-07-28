@@ -136,25 +136,15 @@ class Token
 end
 
 class Domain
-  def Domain.load_tokens
-    @@tokens ||= Token.tokenize(`sudo /usr/bin/xenstore-ls /local/domain`)
-    Thread.new do
-      loop do
-        sleep 60
-        @@tokens = Token.tokenize(`sudo /usr/bin/xenstore-ls /local/domain`)
-      end
-    end
-  end
-
   def Domain.each_with_index(&block)
-    @@tokens.each_with_index do |token, index|
+    tokens = Token.tokenize(`sudo /usr/bin/xenstore-ls /local/domain`)
+    tokens.each_with_index do |token, index|
       yield Domain.new(token), index
     end
   end
 
   def initialize(token)
     @token = token
-    @last_refresh = Time.now.to_i
   end
 
   def method_missing(method_name, *args, &block)
@@ -208,9 +198,7 @@ enterprise_oid = ".1.3.6.1.4.1.32919"
 #                          .1 = Instance
 base_oid = "#{enterprise_oid}.4.2.1.1.1"
 
-Domain.load_tokens
-
-agent = Snmp::PassPersistAgent.new(:idle_timeout => 900) do |snmp|
+agent = Snmp::PassPersistAgent.new(:idle_timeout => 900, :refresh_interval => 60) do |snmp|
   domains_oid = "#{base_oid}.1"
   Domain.each_with_index do |dom_u, index|
     #                         .2 = DomUs
