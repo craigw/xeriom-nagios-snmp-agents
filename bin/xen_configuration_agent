@@ -1,0 +1,74 @@
+#! /usr/bin/env ruby
+
+# SPECIAL REQUIREMENTS
+# ====================
+#
+# The Xen domU configuration files should live either under /etc/xen/*.cfg
+# /var/vm/conf/*.conf
+#
+# The user that snmpd runs as will need to be able to read the Xen domU
+# configuration files
+#
+$:.unshift(File.dirname(__FILE__) + '/../vendor/snmp-tools/lib')
+require 'snmp-tools'
+
+# IMPORTANT! Get your own OID from IANA or you will break things!
+# It costs nothing and doesn't take very long.
+#   http://pen.iana.org/pen/PenApplication.page
+#
+enterprise_oid = ".1.3.6.1.4.1.32919"
+
+# Pick a base OID which all the results here will live under.
+#
+
+# .1.3.6.1.4.1.32919 = Barking Iguana Enterprise
+#                   .4 = System Information
+#                     .2 = Xen !!! WARNING: UNSTABLE - DO NOT USE THESE YET
+#                       .2 = Configuration
+#                         .1 = Instances
+#                           .1 = Instance
+#                             .1 = dom0
+#                               .1 = Configuration Directory
+#                             .2 = domUs
+#                               .1 = domU
+#                                 .1 = Name
+#                                 .2 = Administration
+#                                   .1 = Admin Shell Users
+#                                     .1 = Admin Shell Username
+base_oid = "#{enterprise_oid}.4.2.2.1.1"
+
+agent = Snmp::PassPersistAgent.new(:refresh_interval => 300,
+                                   :base_oid => base_oid) do |snmp|
+  configuration_directory = %W(/var/vm/conf /etc/xen).detect { |directory|
+    File.directory? directory
+  }
+  snmp.push ".1.1", "string", configuration_directory
+  dom_u_configuration = Dir[configuration_directory + '/*.{cfg,conf}'].sort
+  dom_u_configuration.each_with_index do |config_file, dom_u_index|
+    vm_name = File.basename(config_file)
+    vm_name.gsub!(/\.cfg$/, '')
+    vm_name.gsub!(/\.conf$/, '')
+    vm_name.gsub!(/\.vm\.xeriom\.net$/, '')
+    snmp.push ".2.#{dom_u_index+1}.1", "string", vm_name
+    configuration = open(config_file).read.split(/\n/)
+    admin_shell_users = [ vm_name ]
+    admin_shell_line = configuration.detect { |line| line =~ /^xen_shell/ }
+    if admin_shell_line
+      configuration_value = admin_shell_line.split(/\=/, 2)[-1].to_s
+      admin_shell_users += configuration_value.split(/,/)
+    end
+    admin_shell_users.each { |s|
+      s.strip!
+      s.gsub!(/^\"/, '')
+      s.gsub!(/\"$/, '')
+    }
+    admin_shell_users.sort!
+    admin_shell_users.uniq!
+    admin_shell_users.each_with_index do |username, user_index|
+      username.strip!
+      snmp.push ".2.#{dom_u_index+1}.2.1.#{user_index+1}", "string", username
+    end
+  end
+end
+
+agent.run

@@ -39,6 +39,7 @@ Add a section to your snmpd.conf that looks like this*:
 
     pass_persist .1.3.6.1.4.1.32919.4.1.1.1.1 /usr/lib/xeriom-nagios-snmp-agents/bin/mount_agent
     pass_persist .1.3.6.1.4.1.32919.4.2.1.1.1 /usr/lib/xeriom-nagios-snmp-agents/bin/xen_store_agent
+    pass_persist .1.3.6.1.4.1.32919.4.2.2.1.1 /usr/lib/xeriom-nagios-snmp-agents/bin/xen_configuration_agent
 
 Now restart your SNMPD and try to walk the OID tree .1.3.6.1.4.1.32919.4
 
@@ -47,7 +48,8 @@ Now restart your SNMPD and try to walk the OID tree .1.3.6.1.4.1.32919.4
 You should see a bunch of OIDs and values from the agent.
 
 * Unless you're running a Xen dom0 you're unlikely to need the
-xen_store_agent. Pick the agents that make sense for your situation.
+xen_store_agent on xen_configuraiton_agent. Pick the agents that make sense
+for your situation.
 
 
 Special requirements
