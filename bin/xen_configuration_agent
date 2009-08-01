@@ -45,13 +45,15 @@ agent = Snmp::PassPersistAgent.new(:refresh_interval => 300,
   snmp.push ".1.1", "string", configuration_directory
   dom_u_configuration = Dir[configuration_directory + '/*.{cfg,conf}'].sort
   dom_u_configuration.each_with_index do |config_file, dom_u_index|
-    vm_name = File.basename(config_file)
-    vm_name.gsub!(/\.cfg$/, '')
-    vm_name.gsub!(/\.conf$/, '')
-    vm_name.gsub!(/\.vm\.xeriom\.net$/, '')
-    snmp.push ".2.#{dom_u_index+1}.1", "string", vm_name
+    dom_u_name = File.basename(config_file)
+    dom_u_name.gsub!(/\.cfg$/, '')
+    dom_u_name.gsub!(/\.conf$/, '')
+    if dom_u_name !~ /\.vm\.xeriom\.net$/
+      dom_u_name += ".vm.xeriom.net"
+    end
+    snmp.push ".2.#{dom_u_index+1}.1", "string", dom_u_name
     configuration = open(config_file).read.split(/\n/)
-    admin_shell_users = [ vm_name ]
+    admin_shell_users = [ dom_u_name ]
     admin_shell_line = configuration.detect { |line| line =~ /^xen_shell/ }
     if admin_shell_line
       configuration_value = admin_shell_line.split(/\=/, 2)[-1].to_s
