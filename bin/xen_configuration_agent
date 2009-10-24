@@ -63,6 +63,8 @@ agent = Snmp::PassPersistAgent.new(:refresh_interval => 300,
       s.strip!
       s.gsub!(/^\"/, '')
       s.gsub!(/\"$/, '')
+      s.gsub!(/^\'/, '')
+      s.gsub!(/\'$/, '')
     }
     admin_shell_users.sort!
     admin_shell_users.uniq!
